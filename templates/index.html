@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marvel AI Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- MARVEL THEME VARIABLES --- */
+        :root {
+            --marvel-red: #EC1D24;
+            --iron-gold: #F3D403;
+            --shield-blue: #0A1E2F;
+            --dark-bg: #151515;
+            --bubble-user: #005F9E; /* Spiderman Blue / Shield Blue */
+            --bubble-ai: #8B0000;   /* Iron Man Dark Red */
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+                              url('https://wallpaperaccess.com/full/35832.jpg'); /* Generic Avengers Background URL */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* --- MAIN CONTAINER --- */
+        .chat-interface {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid var(--marvel-red);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(236, 29, 36, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 80vh;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            background: var(--marvel-red);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 4px solid var(--iron-gold);
+            letter-spacing: 2px;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        /* --- CHAT AREA --- */
+        #chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--marvel-red) var(--dark-bg);
+        }
+
+        /* Scrollbar styling for Webkit */
+        #chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-box::-webkit-scrollbar-thumb {
+            background-color: var(--marvel-red);
+            border-radius: 4px;
+        }
+
+        /* --- MESSAGES --- */
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* User Message Style */
+        .user-msg {
+            align-self: flex-end;
+            background: var(--bubble-user);
+            color: white;
+            border-bottom-right-radius: 2px;
+            border: 1px solid #4caeff;
+        }
+        .user-msg::before {
+            content: "YOU";
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #ccc;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* AI Message Style */
+        .ai-msg {
+            align-self: flex-start;
+            background: var(--bubble-ai);
+            color: white;
+            border-bottom-left-radius: 2px;
+            border: 1px solid #ff5e5e;
+        }
+        .ai-msg::before {
+            content: "JARVIS"; /* Or whatever name you prefer */
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--iron-gold);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Error Message Style */
+        .error-msg {
+            align-self: center;
+            background: #333;
+            color: #ff3333;
+            border: 1px solid red;
+        }
+
+        /* --- INPUT AREA --- */
+        .input-area {
+            padding: 15px;
+            background: #000;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid var(--marvel-red);
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: 2px solid #333;
+            background: #222;
+            color: white;
+            outline: none;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--iron-gold);
+        }
+
+        button {
+            padding: 10px 25px;
+            background: var(--marvel-red);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        button:hover {
+            background: #c90e15;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="chat-interface">
+    <div class="header">
+        <h2>Avengers Protocol</h2>
+    </div>
+
+    <div id="chat-box">
+        <div class="message ai-msg">Welcome, Agent. Systems are online. How can I assist you today?</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="msg-input" placeholder="Type your command..." onkeypress="handleEnter(event)">
+        <button onclick="send()">SEND</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById("chat-box");
+    const inputField = document.getElementById("msg-input");
+
+    // Allow sending by pressing Enter
+    function handleEnter(e) {
+        if (e.key === 'Enter') send();
+    }
+
+    function appendMessage(text, type) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message");
+        
+        if (type === 'user') {
+            msgDiv.classList.add("user-msg");
+            msgDiv.innerText = text; // User text is plain
+        } else if (type === 'ai') {
+            msgDiv.classList.add("ai-msg");
+            // Check if response contains HTML (optional safety check usually needed here)
+            msgDiv.innerHTML = text; 
+        } else {
+            msgDiv.classList.add("error-msg");
+            msgDiv.innerText = text;
+        }
+
+        chatBox.appendChild(msgDiv);
+        // Auto scroll to bottom
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function send() {
+        const text = inputField.value;
+        if (!text.trim()) return; // Don't send empty messages
+
+        // 1. Show User Message
+        appendMessage(text, 'user');
+        
+        // Clear input
+        inputField.value = "";
+
+        // 2. Send to Backend
+        try {
+            const res = await fetch("http://127.0.0.1:5000/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (!res.ok) throw new Error("Network response was not ok");
+
+            const data = await res.json();
+            
+            // 3. Show AI Response
+            appendMessage(data.response, 'ai');
+
+        } catch (err) {
+            console.error(err);
+            appendMessage("Connection Lost: Hydra blocked the signal.", 'error');
+        }
+    }
+</script>
+
+</body>
+</html>s
